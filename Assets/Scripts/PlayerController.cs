@@ -8,7 +8,8 @@ public class PlayerController : MonoBehaviour
 	private Camera cam;
 	public LayerMask movementMask;
 	private PlayerMotor motor;
-	
+
+	public Interactable focus;
 	// Use this for initialization
 	void Start () {
 		cam = Camera.main;
@@ -26,7 +27,7 @@ public class PlayerController : MonoBehaviour
 			{				
 				motor.MoveToPoint(hit.point);
 				
-				//Stop focusing any objects
+				RemoveFocus();
 			}
 		}	
 		
@@ -36,10 +37,39 @@ public class PlayerController : MonoBehaviour
 			RaycastHit hit;
 
 			if (Physics.Raycast(ray, out hit, 100))
-			{				
-				//check if we hit an interactable
-				//if we did, focus it
+			{
+				Interactable interactable = hit.collider.GetComponent<Interactable>();
+				if (interactable != null)
+				{
+					SetFocus(interactable);
+				}
 			}
 		}	
+	}
+
+	void SetFocus(Interactable newFocus)
+	{
+
+		if (newFocus != focus)
+		{
+			if (focus != null)
+			{
+				focus.OnDefocused();
+			}
+			focus = newFocus;
+			motor.FollowTarget(newFocus);
+		}
+		newFocus.OnFocused(transform);
+
+	}
+
+	void RemoveFocus()
+	{
+		if (focus != null)
+		{
+			focus.OnDefocused();
+		}
+		focus = null;
+		motor.StopFollowingTarget();
 	}
 }
